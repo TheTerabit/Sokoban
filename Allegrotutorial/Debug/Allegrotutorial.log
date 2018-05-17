@@ -1,0 +1,7 @@
+﻿C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V140\Microsoft.CppBuild.targets(392,5): warning MSB8028: The intermediate directory (Debug\) contains files shared from another project (Allegrotutorial.vcxproj).  This can lead to incorrect clean and rebuild behavior.
+  main.cpp
+c:\users\bartek\documents\visual studio 2015\projects\allegrotutorial\allegrotutorial\main.cpp(283): warning C4101: 'disp_data': unreferenced local variable
+  funkcje_dodatkowe.cpp
+  Generating Code...
+  Allegrotutorial.vcxproj -> C:\Users\Bartek\documents\visual studio 2015\Projects\Allegrotutorial\Debug\Sokoban.exe
+  Allegrotutorial.vcxproj -> C:\Users\Bartek\documents\visual studio 2015\Projects\Allegrotutorial\Debug\Sokoban.pdb (Partial PDB)

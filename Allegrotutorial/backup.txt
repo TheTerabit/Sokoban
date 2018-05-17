@@ -1,0 +1,548 @@
+#include <stdio.h>
+#include<fstream>
+#include<iostream>
+#include <allegro5/allegro.h>
+#include "allegro5/allegro_image.h"
+#include "allegro5/allegro_primitives.h"
+#include "allegro5/allegro_native_dialog.h"
+#include"funkcje_dodatkowe.h"
+using namespace std;
+const float FPS = 8;
+const int board_width = 20;
+const int board_height = 20;
+int board[board_width][board_height];
+int x, y, m = 0,score=0,goal=0;
+bool ex = false;
+bool editor = false;
+int level = 1;
+int build[board_width][board_height];
+int cursor = 0;
+bool lc = false;
+
+/*void loading()
+{
+	ALLEGRO_DISPLAY *display = NULL;
+	ALLEGRO_BITMAP  *image = NULL;
+	image = al_load_bitmap("loading2.png");
+	al_draw_bitmap(image, 250, 250, 0);
+	al_flip_display();
+}*/
+void load_level(int v)//wczytuje odpowiedni poziom z pliku do tablicy board
+{
+		ifstream in("save.txt");
+		ifstream load_custom("custom.txt");
+		for (int s = 1; s <= v; s++)
+		{
+			score = 0;
+			goal = 0;
+			for (int i = 0; i < board_height; i++)
+			{
+				for (int j = 0; j < board_width; j++)
+				{
+					if(lc==true)
+						load_custom >> board[i][j];
+					else
+						in >> board[i][j];
+					if (board[i][j] == 5) {
+						x = j;
+						y = i;
+					}
+					if (board[i][j] == 4) {
+						goal = goal + 1;
+					}
+					if (board[i][j] == 3) {
+						goal++;
+						score++;
+					}
+				}
+			}
+		}
+}
+/*
+void show(int p, int xp, int yp)//odœwie¿a odpowiednie pole na planszy
+{
+	ALLEGRO_DISPLAY *display = NULL;
+	ALLEGRO_BITMAP  *image = NULL;
+	if (p == 0)
+		image = al_load_bitmap("empty.png");
+	if (p == 1)
+		image = al_load_bitmap("wall.png");
+	if (p == 2)
+		image = al_load_bitmap("box.png");
+	if (p == 3)
+		image = al_load_bitmap("done.png");
+	if (p == 4)
+		image = al_load_bitmap("target.png");
+	if (p == 5)
+		image = al_load_bitmap("robot.png");
+	if ((p > 5) && (p <= 20))
+		image = al_load_bitmap("door.png");
+	if (p == 21)
+		image = al_load_bitmap("1.png");
+	if (p == 22)
+		image = al_load_bitmap("2.png");
+	if (p == 23)
+		image = al_load_bitmap("3.png");
+	if (p == 24)
+		image = al_load_bitmap("4.png");
+	if (p == 25)
+		image = al_load_bitmap("5.png");
+	if (p == 26)
+		image = al_load_bitmap("6.png");
+	if (p == 27)
+		image = al_load_bitmap("7.png");
+	if (p== 28)
+		image = al_load_bitmap("8.png");
+	if (p == 29)
+		image = al_load_bitmap("9.png");
+	if (p== 30)
+		image = al_load_bitmap("10.png");
+	if (p == 100)
+		image = al_load_bitmap("door.png");
+	if (p == 1000)
+		image = al_load_bitmap("custom.png");
+	if (!image) {
+		al_show_native_message_box(display, "Error", "Error", "Failed to load image!",
+			NULL, ALLEGRO_MESSAGEBOX_ERROR);
+		al_destroy_display(display);
+		return;
+	}
+	al_draw_bitmap(image, xp * 50, yp * 50, 0);
+}*/
+
+void create_new_build()//tworzy now¹ planszê gotow¹ do edytowania
+{
+	ALLEGRO_DISPLAY *display = NULL;
+	ALLEGRO_BITMAP  *image = NULL;
+	cursor = 0;
+	for (int i = 0; i < board_height; i++)
+	{
+		for (int j = 0; j < board_width; j++)
+		{
+			build[i][j] = 1;
+			build[0][0] = 1000;
+			show(build[i][j], j, i);
+		}
+	}
+	x = 1;
+	y = 1;
+	image = al_load_bitmap("empty.png");
+	al_draw_bitmap(image, x * 50, y * 50, 0);
+	image = al_load_bitmap("controls_editor.png");
+	al_draw_bitmap(image,50, 0, 0);
+}
+
+void draw()//rysuje ca³¹ planszê
+{
+	ALLEGRO_DISPLAY *display = NULL;
+	ALLEGRO_BITMAP  *image = NULL;
+	for (int i = 0; i < board_height; i++)
+	{
+		for (int j = 0; j < board_width; j++)
+		{
+			show(board[i][j], j, i);
+		}
+	}
+	if (level == 1)
+	{
+		image = al_load_bitmap("play.png");
+		al_draw_bitmap(image, 500, 550, 0);
+		image = al_load_bitmap("editor.png");
+		al_draw_bitmap(image, 500, 650, 0);
+		image = al_load_bitmap("exit.png");
+		al_draw_bitmap(image, 500, 750, 0);
+		image = al_load_bitmap("sokoban1.png");
+		al_draw_bitmap(image, 200, 200, 0);
+	}
+	image = al_load_bitmap("controls.png");
+	al_draw_bitmap(image, 50, 0, 0);
+	al_flip_display();
+}
+
+void saving()//zapisuje stworzon¹ planszê do pliku
+{
+	ALLEGRO_DISPLAY *display = NULL;
+	ALLEGRO_BITMAP  *image = NULL;
+	loading();
+	ofstream custom_level("custom.txt");
+	for (int i = 0; i < board_height; i++)
+	{
+		for (int j = 0; j < board_width; j++)
+		{
+			custom_level << build[i][j] << " ";
+		}
+		custom_level << "\n";
+	}
+	custom_level.close();
+	editor = false;
+	level = 1;
+	load_level(level);
+	draw();
+}
+
+void move(int d)/////////////////////////////////////////////poruszanie siê
+{
+	ALLEGRO_DISPLAY *display = NULL;
+	ALLEGRO_BITMAP  *image = NULL;
+	int mx = 0, my = 0;//////////////////////////okreœlenie kierunku
+	if (d == 1)
+		my = -1;
+	if (d == 2)
+		my = 1;
+	if (d == 3)
+		mx = -1;
+	if (d == 4)
+		mx = 1;
+	if (editor == false) {
+		if (board[y + my][x + mx] == 0)//////////////////////////////zwyk³e poruszanie
+		{
+			image = al_load_bitmap("robot.png");
+			al_draw_bitmap(image, (x + mx) * 50, (y + my) * 50, 0);
+			if (board[y][x] != 4)
+				board[y][x] = 0;
+			image = al_load_bitmap("empty.png");
+			if (board[y][x] == 4) {
+				image = al_load_bitmap("target.png");
+				board[y][x] = 4;
+			}
+			al_draw_bitmap(image, x * 50, y * 50, 0);
+			board[y + my][x + mx] = 5;
+			y = y + my;
+			x = x + mx;
+			al_flip_display();
+		}
+		else if (board[y + my][x + mx] > 5)/////////////////////////////opcje menu
+		{
+			if (board[y + my][x + mx] == 6)
+			{
+				loading();
+				level++;
+				load_level(level);
+				draw();
+			}
+			if (board[y + my][x + mx] == 7)
+			{
+				loading();
+				editor = true;
+				create_new_build();
+				al_flip_display();
+			}
+			if (board[y + my][x + mx] == 8)
+			{
+				loading();
+				ex = true;
+			}
+			if ((board[y + my][x + mx] > 8) && (board[y + my][x + mx] != 100))
+			{
+				loading();
+				level = board[y + my][x + mx] - 8;
+				load_level(level);
+				draw();
+			}
+			if (board[y + my][x + mx] == 100)
+			{
+				lc = true;
+				loading();
+				level = 12;
+				load_level(1);
+				draw();
+			}
+		}
+
+		else if ((board[y + my][x + mx] == 2) || (board[y + my][x + mx] == 3))/////////////////przesuwanie pude³ek
+		{
+			if (board[y + my*(2)][x + mx*(2)] == 0) {
+				image = al_load_bitmap("robot.png");
+				al_draw_bitmap(image, (x + mx) * 50, (y + my) * 50, 0);
+				image = al_load_bitmap("empty.png");
+				if (board[y][x] == 4)
+					image = al_load_bitmap("target.png");
+				al_draw_bitmap(image, x * 50, y * 50, 0);
+				image = al_load_bitmap("box2.png");
+				al_draw_bitmap(image, (x + mx * 2) * 50, (y + my * 2) * 50, 0);
+				board[y + my * 2][x + mx * 2] = 2;
+				if (board[y + my][x + mx] == 3)
+					board[y + my][x + mx] = 4;
+				else
+					board[y + my][x + mx] = 5;
+				if (board[y][x] != 4)
+					board[y][x] = 0;
+				y = y + my;
+				x = x + mx;
+				al_flip_display();
+			}
+			else if (board[y + my * 2][x + mx * 2] == 4) {
+				image = al_load_bitmap("robot.png");
+				al_draw_bitmap(image, (x + mx) * 50, (y + my) * 50, 0);
+				image = al_load_bitmap("empty.png");
+				if (board[y][x] == 4)
+					image = al_load_bitmap("target.png");
+				al_draw_bitmap(image, x * 50, y * 50, 0);
+				image = al_load_bitmap("done.png");
+				al_draw_bitmap(image, (x + 2 * mx) * 50, (y + my * 2) * 50, 0);
+				board[y + my * 2][x + mx * 2] = 3;
+				if (board[y + my][x + mx] == 3)
+					board[y + my][x + mx] = 4;
+				else
+					board[y + my][x + mx] = 5;
+				if (board[y][x] != 4)
+					board[y][x] = 0;
+				y = y + my;
+				x = x + mx;
+				al_flip_display();
+			}
+		}
+		else if ((board[y +my][x+mx] == 4))////////////////////////////////////////////wchodzenie na gwiazdki
+		{
+			image = al_load_bitmap("robot.png");
+			al_draw_bitmap(image, (x+mx) * 50, (y +my) * 50, 0);
+			image = al_load_bitmap("empty.png");
+			if (board[y][x] == 4)
+				image = al_load_bitmap("target.png");
+			al_draw_bitmap(image, x * 50, y * 50, 0);
+			if (board[y][x] != 4)
+				board[y][x] = 0;
+			y = y +my;
+			x = x + mx;
+			al_flip_display();
+		}
+		score = 0;//////////////////////////////////////////////////////////////////////sprawdzanie wyniku
+		for (int i = 0; i < board_height; i++)
+		{
+			for (int j = 0; j < board_width; j++)
+			{
+				if (board[i][j] == 3)
+				score++;
+			}
+		}
+	}
+	else////////////////////////////////////////////////tryb edytora
+	{
+		if ((x + mx !=0)&&(x + mx !=19)&&(y + my !=19)&&(y + my !=0))
+		{
+			if(cursor==0)
+			image = al_load_bitmap("empty.png");
+			if (cursor == 1)
+				image = al_load_bitmap("wall.png");
+			if (cursor == 2)
+				image = al_load_bitmap("box2.png");
+			if (cursor == 3)
+				image = al_load_bitmap("done.png");
+			if (cursor == 4)
+				image = al_load_bitmap("target.png");
+			if (cursor == 5)
+				image = al_load_bitmap("robot.png");
+			al_draw_bitmap(image, (x + mx) * 50, (y + my) * 50, 0);
+			show(build[y][x], x, y);
+			y = y + my;
+			x = x + mx;
+			al_flip_display();
+		}
+	}
+}
+
+int main(int argc, char **argv) {
+	ALLEGRO_BITMAP  *image = NULL;
+	ALLEGRO_DISPLAY *display = NULL;
+	ALLEGRO_DISPLAY_MODE   disp_data;
+	ALLEGRO_EVENT_QUEUE *event_queue = NULL;
+	ALLEGRO_TIMER *timer = NULL;
+	bool redraw = true, doexit = false, close = false;
+	if (!al_init()) {
+		fprintf(stderr, "failed to initialize allegro!\n");
+		return -1;
+	}
+	if (!al_install_keyboard()) {
+		fprintf(stderr, "failed to initialize the keyboard!\n");
+		return -1;
+	}
+	timer = al_create_timer(1.0 / FPS);
+	if (!timer) {
+		fprintf(stderr, "failed to create timer!\n");
+		return -1;
+	}
+	display = al_create_display(1000, 1000);
+	if (!display) {
+		fprintf(stderr, "failed to create display!\n");
+		al_destroy_timer(timer);
+		return -1;
+	}
+	event_queue = al_create_event_queue();
+	if (!event_queue) {
+		fprintf(stderr, "failed to create event_queue!\n");
+		al_destroy_display(display);
+		al_destroy_timer(timer);
+		return -1;
+	}
+	if (!al_init_image_addon()) {
+		al_show_native_message_box(display, "Error", "Error", "Failed to initialize al_init_image_addon!",
+			NULL, ALLEGRO_MESSAGEBOX_ERROR);
+		return 0;
+	}
+	al_register_event_source(event_queue, al_get_display_event_source(display));
+	al_register_event_source(event_queue, al_get_timer_event_source(timer));
+	al_register_event_source(event_queue, al_get_keyboard_event_source());
+	al_clear_to_color(al_map_rgb(0, 0, 0));
+	al_flip_display();
+	al_start_timer(timer);
+
+	load_level(level);
+	draw();
+
+	while (!doexit)////////////////////////////////////////////////////////////////////start gry
+	{
+		ALLEGRO_EVENT ev;
+		al_wait_for_event(event_queue, &ev);
+
+		if (ev.type == ALLEGRO_EVENT_KEY_DOWN) {
+			switch (ev.keyboard.keycode) {
+				case ALLEGRO_KEY_UP:
+					move(1);
+					m = 1;
+					break;
+
+				case ALLEGRO_KEY_DOWN:
+					move(2);
+					m = 2;
+					break;
+
+				case ALLEGRO_KEY_LEFT:
+					move(3);
+					m = 3;
+					break;
+
+				case ALLEGRO_KEY_RIGHT:
+					move(4);
+					m = 4;
+					break;
+						
+				case ALLEGRO_KEY_ESCAPE:
+					loading();
+					lc = false;
+					if ((level == 1)&&(editor==false))
+						doexit = true;
+					else
+					{
+						editor = false;
+						level = 1;
+						load_level(level);
+						draw();
+					}
+					break;
+						
+				case ALLEGRO_KEY_R:
+					if (editor == false)
+					{
+						loading();
+						load_level(level);
+						draw();
+					}
+					else
+					{
+						loading();
+						editor = true;
+						create_new_build();
+						al_flip_display();
+					}
+					break;
+				case ALLEGRO_KEY_N:
+					if((editor==false)&&(level>2))
+						score = goal;
+					break;
+				case ALLEGRO_KEY_ENTER:
+					if((board[y][x+1]==6)&&(editor==false))
+					{
+						loading();
+						level++;
+						load_level(level);
+						draw();
+					}
+					if ((board[y][x + 1] == 7) && (editor == false))
+					{
+						loading();
+						editor = true;
+						create_new_build();
+						al_flip_display();
+					}
+					if ((board[y][x + 1] == 8) && (editor == false))
+						ex = true;			
+						
+			}
+		if(editor==true)//////////////////////////////////////////sterowanie w edytorze
+			switch (ev.keyboard.keycode) {
+				case ALLEGRO_KEY_1:
+					cursor = 1;
+					image = al_load_bitmap("wall.png");
+					al_draw_bitmap(image, (x) * 50, (y) * 50, 0);
+					al_flip_display();
+					break;
+				case ALLEGRO_KEY_6:
+					cursor = 0;
+					image = al_load_bitmap("empty.png");
+					al_draw_bitmap(image, (x) * 50, (y) * 50, 0);
+					al_flip_display();
+					break;
+				case ALLEGRO_KEY_2:
+					cursor = 2;
+					image = al_load_bitmap("box2.png");
+					al_draw_bitmap(image, (x) * 50, (y) * 50, 0);
+					al_flip_display();
+					break;
+				case ALLEGRO_KEY_3:
+					cursor = 3;
+					image = al_load_bitmap("done.png");
+					al_draw_bitmap(image, (x) * 50, (y) * 50, 0);
+					al_flip_display();
+					break;
+				case ALLEGRO_KEY_4:
+					cursor = 4;
+					image = al_load_bitmap("target.png");
+					al_draw_bitmap(image, (x) * 50, (y) * 50, 0);
+					al_flip_display();
+					break;
+				case ALLEGRO_KEY_5:
+					cursor = 5;
+					image = al_load_bitmap("robot.png");
+					al_draw_bitmap(image, (x) * 50, (y) * 50, 0);
+					al_flip_display();
+					break;
+				case ALLEGRO_KEY_SPACE:
+					build[y][x] = cursor;
+					break;
+				case ALLEGRO_KEY_S:
+					saving();
+					break;
+				}		
+			}
+			if (goal == score)/////////////////////////////////////////////////////////przejsæie poziomu
+			{
+				if (level == 12)
+				{
+					level = 1;
+					image = al_load_bitmap("win.png");
+					al_draw_bitmap(image, 250, 300, 0);
+					al_flip_display();
+					al_rest(1.0);
+				}
+				else {
+					level++;
+					image = al_load_bitmap("next_level.png");
+					al_draw_bitmap(image, 250, 250, 0);
+					al_flip_display();
+					al_rest(1.0);	
+				}
+				lc = false;
+				load_level(level);
+				draw();
+			}
+			if ((ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE)||(ex==true)) {
+				close = true;
+				break;
+			}
+		}
+	al_destroy_timer(timer);
+	al_destroy_display(display);
+	al_destroy_event_queue(event_queue);
+	al_destroy_bitmap(image);
+	return 0;
+}
