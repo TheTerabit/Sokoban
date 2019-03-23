@@ -1,6 +1,6 @@
 # Sokoban Game
 
-C++/Allegro
+C++ / Allegro
 -
 
 A university project for Low-level Programming subject. This is a puzzle game in which your task is to move all boxes on the floor to 
